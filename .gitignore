@@ -1,0 +1,13 @@
+# Dépendances
+node_modules/
+
+# Variables d'environnement (secrets) — ne jamais versionner
+.env
+
+# Logs et fichiers système
+*.log
+npm-debug.log*
+.DS_Store
+
+# Couverture de tests
+coverage/
