@@ -8,6 +8,7 @@ const taskSchema = new mongoose.Schema(
     description: {type: String, default: '', maxlength: 1000},
     dueDate: {type: String, default: null},
     user: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true},
+    priority: {type: String, enum: ['low', 'medium', 'high'], default: 'medium'},
   },{ timestamps: true }
 )
 taskSchema.index({ user: 1, createdAt: -1 })

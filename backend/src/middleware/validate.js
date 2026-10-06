@@ -14,3 +14,17 @@ export function validate(schema) {
     next()
   }
 }
+
+export function validateQuery(schema) {
+  return (req, res, next) => {
+    const result = schema.safeParse(req.query)
+
+    if (!result.success) {
+      const first = result.error.issues[0]
+      return sendError(res, 400, 'INVALID_INPUT', first ? first.message : 'Paramètres de requête invalides')
+    }
+
+    req.validatedQuery = result.data
+    next()
+  }
+}
