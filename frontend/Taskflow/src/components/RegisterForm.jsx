@@ -1,7 +1,6 @@
 import { useState } from 'react'
+import { register } from '../api/auth.js'
 import './RegisterForm.css'
-
-const API_URL = 'http://localhost:4000/api'
 
 export default function RegisterForm({ onAuthenticated }) {
   const [email, setEmail] = useState('')
@@ -9,21 +8,13 @@ export default function RegisterForm({ onAuthenticated }) {
   const [message, setMessage] = useState('')
 
   const handleRegister = async () => {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      setMessage(data?.error?.message || 'Erreur')
-      return
+    try {
+      const token = await register(email, password)
+      localStorage.setItem('taskflow-token', token)
+      onAuthenticated()
+    } catch (error) {
+      setMessage(error.message)
     }
-
-    localStorage.setItem('taskflow-token', data.token)
-    onAuthenticated()
   }
 
   return (
