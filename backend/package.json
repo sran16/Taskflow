@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "smoke": "node scripts/smoke-test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
