@@ -7,7 +7,9 @@ const taskSchema = new mongoose.Schema(
     status: {type: String, required: true, enum: ['todo', 'doing', 'done']},
     description: {type: String, default: '', maxlength: 1000},
     dueDate: {type: String, default: null},
+    completedAt: {type: Date, default: null},
     user: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true},
+    priority: {type: String, enum: ['low', 'medium', 'high'], default: 'medium'},
   },{ timestamps: true }
 )
 taskSchema.index({ user: 1, createdAt: -1 })
