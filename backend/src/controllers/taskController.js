@@ -24,7 +24,11 @@ export async function listTasks(req, res) {
 // create tasks 
 export async function createTask(req, res) {
   try {
-    const task = await Task.create({ ...req.body, user: req.user._id })
+    const task = await Task.create({
+      ...req.body,
+      completedAt: req.body.status === 'done' ? new Date() : null,
+      user: req.user._id,
+    })
     return res.status(201).json({ task })
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la création de la tâche')}
 }
@@ -45,13 +49,16 @@ export async function updateTask(req, res) {
   if (!validTaskId(req.params.id)) {return sendError(res, 400, 'INVALID_ID', 'Identifiant de tâche invalide')}
 
   try {
-    const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      { $set: req.body },
-      { new: true, runValidators: true }
-    )
-    
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id })
     if (!task) return sendError(res, 404, 'TASK_NOT_FOUND', 'Tâche introuvable')
+
+    const wasDone = task.status === 'done'
+    Object.assign(task, req.body)
+
+    if (!wasDone && task.status === 'done') task.completedAt = new Date()
+    else if (wasDone && task.status !== 'done') task.completedAt = null
+
+    await task.save()
     return res.json({ task })
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la modification de la tâche')}
 }
