@@ -40,9 +40,10 @@ POST   /api/tasks
 GET    /api/tasks/:id
 PATCH  /api/tasks/:id
 DELETE /api/tasks/:id
+GET    /api/heatmap
 ```
 
-`/api/auth/me` et tout `/api/tasks` demandent le token dans le header :
+`/api/auth/me`, `/api/heatmap` et toutes les routes `/api/tasks` demandent le token dans le header :
 `Authorization: Bearer <token>`.
 
 Une tâche a un `title` (obligatoire), un `status` (`todo`, `doing` ou `done`),

@@ -3,6 +3,7 @@ import authRoutes from './authRoutes.js'
 import taskRoutes from './taskRoutes.js'
 import habitRoutes from './habitRoutes.js'
 import statsRoutes from './statsRoutes.js'
+import heatmapRoutes from './heatmapRoutes.js'
 
 const router = Router()
 
@@ -15,5 +16,6 @@ router.use('/auth', authRoutes)
 router.use('/tasks', taskRoutes)
 router.use('/habits', habitRoutes)
 router.use('/stats', statsRoutes)
+router.use('/heatmap', heatmapRoutes)
 
 export default router
