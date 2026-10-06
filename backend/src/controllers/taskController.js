@@ -24,12 +24,25 @@ function handleTaskError(res, error, message) {
   return sendError(res, 500, 'INTERNAL_ERROR', message)
 }
 
+// Public shape: `id`, never `_id`, and never expose `user`/`__v`.
+function publicTask(task) {
+  return {
+    id: task._id,
+    title: task.title,
+    status: task.status,
+    description: task.description,
+    dueDate: task.dueDate,
+    priority: task.priority,
+    completedAt: task.completedAt,
+  }
+}
+
 // GET toutes les tasks
 export async function listTasks(req, res) {
   try {
     const filter = buildTaskFilter(req.user._id, req.validatedQuery) // bonus1 : filtrage ---
     const tasks = await Task.find(filter).sort({ createdAt: -1, _id: -1 }) 
-    return res.json({ tasks })
+    return res.json({ items: tasks.map(publicTask) })
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la récupération des tâches')}
 }
 
@@ -57,28 +70,28 @@ export async function createTask(req, res) {
       completedAt: req.body.status === 'done' ? new Date() : null,
       user: req.user._id,
     })
-    return res.status(201).json({ task })
+    return res.status(201).json(publicTask(task))
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la création de la tâche')}
 }
 
 // chopper les tasks par id
 export async function getTask(req, res) {
-  if (!validTaskId(req.params.id)) return sendError(res, 400, 'INVALID_ID', 'Identifiant de tâche invalide')
+  if (!validTaskId(req.params.id)) return sendError(res, 400, 'INVALID_INPUT', 'Identifiant de tâche invalide')
 
   try {
     const task = await Task.findOne({ _id: req.params.id, user: req.user._id })
-    if (!task) return sendError(res, 404, 'TASK_NOT_FOUND', 'Tâche introuvable')
-    return res.json({ task })
+    if (!task) return sendError(res, 404, 'NOT_FOUND', 'Tâche introuvable')
+    return res.json(publicTask(task))
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la récupération de la tâche')}
 }
 
 // update (ça peut être un patch ou put mais ici on va faire patch , ligne 13 : taskRoutes.js)
 export async function updateTask(req, res) {
-  if (!validTaskId(req.params.id)) {return sendError(res, 400, 'INVALID_ID', 'Identifiant de tâche invalide')}
+  if (!validTaskId(req.params.id)) {return sendError(res, 400, 'INVALID_INPUT', 'Identifiant de tâche invalide')}
 
   try {
     const task = await Task.findOne({ _id: req.params.id, user: req.user._id })
-    if (!task) return sendError(res, 404, 'TASK_NOT_FOUND', 'Tâche introuvable')
+    if (!task) return sendError(res, 404, 'NOT_FOUND', 'Tâche introuvable')
 
     const wasDone = task.status === 'done'
     Object.assign(task, req.body)
@@ -87,17 +100,17 @@ export async function updateTask(req, res) {
     else if (wasDone && task.status !== 'done') task.completedAt = null
 
     await task.save()
-    return res.json({ task })
+    return res.json(publicTask(task))
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la modification de la tâche')}
 }
 
 // DELETE :T
 export async function deleteTask(req, res) {
-  if (!validTaskId(req.params.id)) return sendError(res, 400, 'INVALID_ID', 'Identifiant de tâche invalide')
+  if (!validTaskId(req.params.id)) return sendError(res, 400, 'INVALID_INPUT', 'Identifiant de tâche invalide')
 
   try {
     const task = await Task.findOneAndDelete({ _id: req.params.id, user: req.user._id })
-    if (!task) {return sendError(res, 404, 'TASK_NOT_FOUND', 'Tâche introuvable')}
+    if (!task) {return sendError(res, 404, 'NOT_FOUND', 'Tâche introuvable')}
     return res.status(204).end()
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la suppression de la tâche')}
 }
