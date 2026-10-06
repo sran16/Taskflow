@@ -1,0 +1,68 @@
+.home-page {
+  min-height: 100vh;
+}
+
+.home-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.task-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.task-form {
+  display: grid;
+  gap: 12px;
+}
+
+.task-field {
+  display: grid;
+  gap: 4px;
+}
+
+.task-field input, .task-field textarea, .task-field select {
+  width: 100%;
+}
+
+.task-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.task-error {
+  margin: 0;
+  color: red;
+}
+
+.task-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.task-item__details {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 4px;
+}
+
+@media (max-width: 720px) {
+  .task-layout {
+    grid-template-columns: 1fr;
+  }
+}

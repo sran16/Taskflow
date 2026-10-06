@@ -2,7 +2,7 @@ import { useState } from 'react'
 import HomePage from './components/HomePage'
 import LoginForm from './components/LoginForm'
 import RegisterForm from './components/RegisterForm'
-import './App.css'
+import './css/App.css'
 
 function App() {
   const [showLogin, setShowLogin] = useState(true)
@@ -16,7 +16,7 @@ function App() {
   }
 
   if (isAuthenticated) {
-    return <HomePage onLogout={handleLogout} />
+    return <HomePage onLogout={handleLogout} token={localStorage.getItem('taskflow-token')} />
   }
 
   return (
