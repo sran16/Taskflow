@@ -48,3 +48,15 @@ GET    /api/heatmap
 
 Une tâche a un `title` (obligatoire), un `status` (`todo`, `doing` ou `done`),
 une `description` et une `dueDate` (optionnelles).
+
+## Tests backend
+
+Depuis la racine du projet, lance les tests Jest du backend avec :
+
+```bash
+cd backend
+npm install
+npm run test:jest
+```
+
+Les tests couvrent la création, la modification et la suppression des tâches, y compris quelques cas d'erreur. Ils n'ont pas besoin d'une instance MongoDB.
