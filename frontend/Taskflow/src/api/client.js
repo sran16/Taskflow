@@ -11,6 +11,8 @@ export async function apiFetch(path, { method = 'GET', body, token } = {}) {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    // Always hit the API: never serve a stale cached response (Express sends ETags).
+    cache: 'no-store',
   })
 
   const data = await response.json().catch(() => null)

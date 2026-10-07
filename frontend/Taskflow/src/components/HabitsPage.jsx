@@ -11,7 +11,6 @@ import {
 import { dayLabel, lastNDays } from '../utils/dates.js'
 import '../css/HabitsPage.css'
 
-const DAYS = lastNDays(7)
 const emptyForm = { title: '', frequency: 'daily', active: 'yes' }
 const FREQUENCY_LABELS = { daily: 'Quotidienne', weekly: 'Hebdomadaire' }
 
@@ -23,6 +22,12 @@ export default function HabitsPage({ token }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Last 7 civil dates, recomputed on every render (stays correct past midnight).
+  const days = lastNDays(7)
+
+  // Events come back as objects { id, habitId, date }: we only keep the dates.
+  const datesFor = (habitId) => (events[habitId] || []).map((event) => event.date)
 
   const load = useCallback(async () => {
     setIsLoading(true)
@@ -87,15 +92,18 @@ export default function HabitsPage({ token }) {
 
   const handleToggleActive = async (habit) => {
     try {
-      await updateHabit(token, habit.id, { active: !habit.active })
-      await load()
+      const updated = await updateHabit(token, habit.id, { active: !habit.active })
+      // Update only this habit locally (no full reload -> no stale/cached state).
+      setHabits((currentHabits) =>
+        currentHabits.map((item) => (item.id === updated.id ? updated : item)),
+      )
     } catch (requestError) {
       setError(requestError.message)
     }
   }
 
   const handleToggleDate = async (habit, date) => {
-    const realized = events[habit.id] || []
+    const realized = datesFor(habit.id)
 
     try {
       if (realized.includes(date)) await removeHabitEvent(token, habit.id, date)
@@ -186,7 +194,8 @@ export default function HabitsPage({ token }) {
           ) : (
             <ul className="habit-list">
               {habits.map((habit) => {
-                const realized = new Set(events[habit.id] || [])
+                const realized = new Set(datesFor(habit.id))
+                const weekCount = days.filter((date) => realized.has(date)).length
 
                 return (
                   <li className="habit-item" key={habit.id}>
@@ -196,13 +205,15 @@ export default function HabitsPage({ token }) {
                         <span className={`habit-badge habit-badge--${habit.frequency}`}>
                           {FREQUENCY_LABELS[habit.frequency]}
                         </span>
+                        <span className="habit-week">{weekCount}/{days.length} cette semaine</span>
                         {!habit.active && <span className="habit-badge habit-badge--off">Inactive</span>}
                       </p>
 
                       <div className="habit-days">
-                        {DAYS.map((date) => (
+                        {days.map((date) => (
                           <button
                             className={`habit-day ${realized.has(date) ? 'habit-day--on' : ''}`}
+                            disabled={!habit.active}
                             key={date}
                             onClick={() => handleToggleDate(habit, date)}
                             title={date}
