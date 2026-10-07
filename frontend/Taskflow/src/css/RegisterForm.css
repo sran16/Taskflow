@@ -1,0 +1,50 @@
+.register-form {
+  display: grid;
+  gap: 12px;
+}
+
+.register-form__title {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.register-form__input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.register-form__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.register-form__submit {
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.register-form__submit:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.register-form__message {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  background: #fef2f2;
+  color: var(--danger);
+  font-size: 13px;
+}

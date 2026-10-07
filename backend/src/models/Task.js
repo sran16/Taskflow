@@ -13,5 +13,6 @@ const taskSchema = new mongoose.Schema(
   },{ timestamps: true }
 )
 taskSchema.index({ user: 1, createdAt: -1 })
+taskSchema.index({ user: 1, status: 1, completedAt: 1 })
 
 export const Task = mongoose.model('Task', taskSchema)

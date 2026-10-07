@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { register } from '../api/auth.js'
-import './RegisterForm.css'
+import '../css/RegisterForm.css'
 
 export default function RegisterForm({ onAuthenticated }) {
   const [email, setEmail] = useState('')
