@@ -9,7 +9,7 @@ const app = express()
 
 app.use(cors({ origin: env.corsOrigin }))
 app.use(express.json())
-app.use(morgan('dev'))
+if (env.nodeEnv !== 'test') app.use(morgan('dev'))
 
 app.use('/api', routes)
 
