@@ -1,9 +1,13 @@
 import express from 'express'
 import cors from 'cors'
 import morgan from 'morgan'
+import { readFileSync } from 'node:fs'
+import swaggerUi from 'swagger-ui-express'
 import { env } from './config/env.js'
 import routes from './routes/index.js'
 import { sendError } from './utils/errors.js'
+
+const swaggerFile = JSON.parse(readFileSync(new URL('./swagger-output.json', import.meta.url)))
 
 const app = express()
 
@@ -11,6 +15,7 @@ app.use(cors({ origin: env.corsOrigin }))
 app.use(express.json())
 if (env.nodeEnv !== 'test') app.use(morgan('dev'))
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 app.use('/api', routes)
 
 // Unknown route
