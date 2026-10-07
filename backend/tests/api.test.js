@@ -4,7 +4,6 @@ import app from '../src/app.js'
 import { User } from '../src/models/User.js'
 import { Task } from '../src/models/Task.js'
 import { Habit } from '../src/models/Habit.js'
-import { HabitEvent } from '../src/models/HabitEvent.js'
 
 const TEST_URI = process.env.MONGO_URI_TEST || 'mongodb://127.0.0.1:27017/taskflow_test'
 
@@ -28,12 +27,7 @@ describe('TaskFlow API', () => {
   })
 
   beforeEach(async () => {
-    await Promise.all([
-      User.deleteMany({}),
-      Task.deleteMany({}),
-      Habit.deleteMany({}),
-      HabitEvent.deleteMany({}),
-    ])
+    await Promise.all([User.deleteMany({}), Task.deleteMany({}), Habit.deleteMany({})])
   })
 
   describe('health', () => {
@@ -108,12 +102,13 @@ describe('TaskFlow API', () => {
       ;({ token } = await register('habits@test.fr'))
     })
 
-    test('CRUD + dated realizations', async () => {
+    test('CRUD + dated realizations stored in the habit', async () => {
       const created = await request(app)
         .post('/api/habits')
         .set(auth(token))
         .send({ title: 'Marcher', frequency: 'daily', active: true })
       expect(created.status).toBe(201)
+      expect(created.body.dates).toEqual([])
       const id = created.body.id
 
       const missingActive = await request(app)
@@ -122,18 +117,20 @@ describe('TaskFlow API', () => {
         .send({ title: 'Lire', frequency: 'daily' })
       expect(missingActive.status).toBe(400)
 
-      const event = await request(app)
+      // mark a realization for a date
+      const marked = await request(app)
         .post(`/api/habits/${id}/events`)
         .set(auth(token))
         .send({ date: '2026-10-05' })
-      expect(event.status).toBe(201)
+      expect(marked.status).toBe(200)
+      expect(marked.body.dates).toContain('2026-10-05')
 
-      // same day twice is idempotent
+      // same day twice stays a single entry
       const again = await request(app)
         .post(`/api/habits/${id}/events`)
         .set(auth(token))
         .send({ date: '2026-10-05' })
-      expect(again.status).toBe(200)
+      expect(again.body.dates).toEqual(['2026-10-05'])
 
       const badDate = await request(app)
         .post(`/api/habits/${id}/events`)
@@ -141,50 +138,12 @@ describe('TaskFlow API', () => {
         .send({ date: '2026-02-30' })
       expect(badDate.status).toBe(400)
 
-      const list = await request(app).get(`/api/habits/${id}/events`).set(auth(token))
-      expect(list.body.items).toHaveLength(1)
-
-      const removed = await request(app)
+      // unmark
+      const unmarked = await request(app)
         .delete(`/api/habits/${id}/events/2026-10-05`)
         .set(auth(token))
-      expect(removed.status).toBe(204)
-
-      const empty = await request(app).get(`/api/habits/${id}/events`).set(auth(token))
-      expect(empty.body.items).toHaveLength(0)
-    })
-  })
-
-  describe('stats & heatmap', () => {
-    let token
-
-    beforeEach(async () => {
-      ;({ token } = await register('stats@test.fr'))
-    })
-
-    test('GET /api/stats/weekly -> items with rates', async () => {
-      const res = await request(app).get('/api/stats/weekly?weeks=2').set(auth(token))
-      expect(res.status).toBe(200)
-      expect(res.body.items).toHaveLength(2)
-      expect(typeof res.body.items[0].tasks.rate).toBe('number')
-    })
-
-    test('stats without token -> 401', async () => {
-      const res = await request(app).get('/api/stats/weekly')
-      expect(res.status).toBe(401)
-    })
-
-    test('stats weeks=99 -> 400 INVALID_INPUT', async () => {
-      const res = await request(app).get('/api/stats/weekly?weeks=99').set(auth(token))
-      expect(res.status).toBe(400)
-      expect(res.body.error.code).toBe('INVALID_INPUT')
-    })
-
-    test('GET /api/heatmap -> weeks/days', async () => {
-      const res = await request(app)
-        .get('/api/heatmap?from=2026-10-01&to=2026-10-07&timezone=Europe/Paris')
-        .set(auth(token))
-      expect(res.status).toBe(200)
-      expect(Array.isArray(res.body.weeks)).toBe(true)
+      expect(unmarked.status).toBe(200)
+      expect(unmarked.body.dates).toEqual([])
     })
   })
 })

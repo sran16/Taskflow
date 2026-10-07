@@ -17,15 +17,12 @@ export function deleteHabit(token, id) {
   return apiFetch(`/habits/${id}`, { method: 'DELETE', token })
 }
 
-export async function listHabitEvents(token, id) {
-  const data = await apiFetch(`/habits/${id}/events`, { token })
-  return data.items
-}
-
-export function addHabitEvent(token, id, date) {
+// Mark a realization for a date (returns the updated habit with its dates)
+export function addHabitDate(token, id, date) {
   return apiFetch(`/habits/${id}/events`, { method: 'POST', body: { date }, token })
 }
 
-export function removeHabitEvent(token, id, date) {
+// Unmark a realization (returns the updated habit)
+export function removeHabitDate(token, id, date) {
   return apiFetch(`/habits/${id}/events/${date}`, { method: 'DELETE', token })
 }

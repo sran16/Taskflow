@@ -1,34 +1,37 @@
 # TaskFlow
 
-une app de gestion de tâches.
+Petite app de gestion de tâches et d'habitudes (EFREI — Full Stack JS).
 
 ## Ce que ça fait
 
-- inscription et connexion (JWT)
-- chaque utilisateur ne voit que ses propres tâches
-- créer, consulter, modifier et supprimer une tâche
+- inscription / connexion (JWT)
+- chaque utilisateur ne voit que ses propres données
+- tâches : créer, lister, modifier, supprimer, filtrer, compter
+- habitudes : créer, activer/désactiver, marquer des jours de réalisation
+- statistiques : heatmap + taux de complétion hebdomadaire (calculés côté front)
 
 ## Lancer le projet
 
-Il faut Node (v20+) et MongoDB installés, puis :
+Il faut Node (v20+) et MongoDB installés.
+
+**Backend**
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
+cp .env.example .env      # puis changer JWT_SECRET
+npm run dev               # API sur http://localhost:4000
 ```
 
-Pense à changer `JWT_SECRET` dans le `.env`.
-
-Ensuite, avec MongoDB qui tourne :
+**Frontend**
 
 ```bash
-npm run dev
+cd frontend/Taskflow
+npm install
+npm run dev               # site sur http://localhost:5173
 ```
 
-L'API est disponible sur http://localhost:4000 (test : `GET /api/health`).
-
-## Routes
+## Routes de l'API
 
 ```
 GET    /api/health
@@ -37,26 +40,29 @@ POST   /api/auth/login
 GET    /api/auth/me
 GET    /api/tasks
 POST   /api/tasks
+GET    /api/tasks/count
 GET    /api/tasks/:id
 PATCH  /api/tasks/:id
 DELETE /api/tasks/:id
-GET    /api/heatmap
+GET    /api/habits
+POST   /api/habits
+GET    /api/habits/:id
+PATCH  /api/habits/:id
+DELETE /api/habits/:id
+POST   /api/habits/:id/events
+DELETE /api/habits/:id/events/:date
 ```
 
-`/api/auth/me`, `/api/heatmap` et toutes les routes `/api/tasks` demandent le token dans le header :
+Toutes les routes, sauf `/api/health` et `/api/auth/register|login`, demandent le header
 `Authorization: Bearer <token>`.
 
-Une tâche a un `title` (obligatoire), un `status` (`todo`, `doing` ou `done`),
-une `description` et une `dueDate` (optionnelles).
-
-## Tests backend
-
-Depuis la racine du projet, lance les tests Jest du backend avec :
+## Tests
 
 ```bash
 cd backend
-npm install
-npm run test:jest
+npm test        # Jest + Supertest
 ```
 
-Les tests couvrent la création, la modification et la suppression des tâches, y compris quelques cas d'erreur. Ils n'ont pas besoin d'une instance MongoDB.
+## Documentation
+
+Swagger : http://localhost:4000/api-docs (backend lancé)

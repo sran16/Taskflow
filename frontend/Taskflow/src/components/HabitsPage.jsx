@@ -1,45 +1,38 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-  addHabitEvent,
-  createHabit,
-  deleteHabit,
-  listHabitEvents,
-  listHabits,
-  removeHabitEvent,
-  updateHabit,
-} from '../api/habits.js'
 import { dayLabel, lastNDays } from '../utils/dates.js'
 import '../css/HabitsPage.css'
+import { useCallback, useEffect, useState } from 'react'
+import {
+  addHabitDate,
+  createHabit,
+  deleteHabit,
+  listHabits,
+  removeHabitDate,
+  updateHabit,
+} from '../api/habits.js'
 
 const emptyForm = { title: '', frequency: 'daily', active: 'yes' }
 const FREQUENCY_LABELS = { daily: 'Quotidienne', weekly: 'Hebdomadaire' }
 
 export default function HabitsPage({ token }) {
   const [habits, setHabits] = useState([])
-  const [events, setEvents] = useState({})
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
 
-  // Last 7 civil dates, recomputed on every render (stays correct past midnight).
+  // Last 7 civil dates, recomputed on every render.
   const days = lastNDays(7)
 
-  // Events come back as objects { id, habitId, date }: we only keep the dates.
-  const datesFor = (habitId) => (events[habitId] || []).map((event) => event.date)
+  const replace = (updated) =>
+    setHabits((current) => current.map((habit) => (habit.id === updated.id ? updated : habit)))
 
   const load = useCallback(async () => {
     setIsLoading(true)
     setError('')
 
     try {
-      const loadedHabits = await listHabits(token)
-      const entries = await Promise.all(
-        loadedHabits.map(async (habit) => [habit.id, await listHabitEvents(token, habit.id)]),
-      )
-      setHabits(loadedHabits)
-      setEvents(Object.fromEntries(entries))
+      setHabits(await listHabits(token))
     } catch (requestError) {
       setError(requestError.message)
     } finally {
@@ -92,25 +85,20 @@ export default function HabitsPage({ token }) {
 
   const handleToggleActive = async (habit) => {
     try {
-      const updated = await updateHabit(token, habit.id, { active: !habit.active })
-      // Update only this habit locally (no full reload -> no stale/cached state).
-      setHabits((currentHabits) =>
-        currentHabits.map((item) => (item.id === updated.id ? updated : item)),
-      )
+      replace(await updateHabit(token, habit.id, { active: !habit.active }))
     } catch (requestError) {
       setError(requestError.message)
     }
   }
 
   const handleToggleDate = async (habit, date) => {
-    const realized = datesFor(habit.id)
-
     try {
-      if (realized.includes(date)) await removeHabitEvent(token, habit.id, date)
-      else await addHabitEvent(token, habit.id, date)
+      const dates = habit.dates || []
+      const updated = dates.includes(date)
+        ? await removeHabitDate(token, habit.id, date)
+        : await addHabitDate(token, habit.id, date)
 
-      const updated = await listHabitEvents(token, habit.id)
-      setEvents((currentEvents) => ({ ...currentEvents, [habit.id]: updated }))
+      replace(updated)
     } catch (requestError) {
       setError(requestError.message)
     }
@@ -194,7 +182,7 @@ export default function HabitsPage({ token }) {
           ) : (
             <ul className="habit-list">
               {habits.map((habit) => {
-                const realized = new Set(datesFor(habit.id))
+                const realized = new Set(habit.dates || [])
                 const weekCount = days.filter((date) => realized.has(date)).length
 
                 return (

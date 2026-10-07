@@ -1,19 +1,15 @@
-import { useEffect, useState } from 'react'
-import { getHeatmap } from '../api/heatmap.js'
-import { getWeeklyStats } from '../api/stats.js'
+import { useEffect, useMemo, useState } from 'react'
+import { listTasks } from '../api/tasks.js'
+import { listHabits } from '../api/habits.js'
 import { lastNDays } from '../utils/dates.js'
+import { buildWeeks, computeHeatmap, computeWeeklyStats } from '../utils/stats.js'
 import '../css/StatsPage.css'
 
-const RANGE_DAYS = 182
-const RANGE = lastNDays(RANGE_DAYS)
-const FROM = RANGE[0]
-const TO = RANGE[RANGE.length - 1]
-const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone
+const HEATMAP_DAYS = lastNDays(12 * 7)
+const LEGEND = ['0', '1', '2 à 3', '4 à 6', '7+']
 
-const DAY_LABELS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam']
-
-function formatDay(civil) {
-  const [, month, day] = civil.split('-')
+function formatDay(civilDate) {
+  const [, month, day] = civilDate.split('-')
   return `${day}/${month}`
 }
 
@@ -33,8 +29,8 @@ function RateBar({ label, rate, detail }) {
 }
 
 export default function StatsPage({ token }) {
-  const [heatmap, setHeatmap] = useState(null)
-  const [weekly, setWeekly] = useState([])
+  const [tasks, setTasks] = useState([])
+  const [habits, setHabits] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -46,13 +42,10 @@ export default function StatsPage({ token }) {
       setError('')
 
       try {
-        const [map, stats] = await Promise.all([
-          getHeatmap(token, { from: FROM, to: TO, timezone: TIMEZONE }),
-          getWeeklyStats(token, 8),
-        ])
+        const [loadedTasks, loadedHabits] = await Promise.all([listTasks(token), listHabits(token)])
         if (!isCurrent) return
-        setHeatmap(map)
-        setWeekly(stats)
+        setTasks(loadedTasks)
+        setHabits(loadedHabits)
       } catch (requestError) {
         if (isCurrent) setError(requestError.message)
       } finally {
@@ -67,6 +60,11 @@ export default function StatsPage({ token }) {
     }
   }, [token])
 
+  const heatmap = useMemo(() => computeHeatmap(tasks, habits, HEATMAP_DAYS), [tasks, habits])
+  const weeks = useMemo(() => buildWeeks(heatmap), [heatmap])
+  const weekly = useMemo(() => computeWeeklyStats(tasks, habits, 8), [tasks, habits])
+  const total = heatmap.reduce((sum, day) => sum + day.count, 0)
+
   return (
     <div className="home-content">
       <h1>Statistiques</h1>
@@ -80,14 +78,12 @@ export default function StatsPage({ token }) {
           <section className="stats-panel">
             <div className="stats-panel__head">
               <h2>Activité</h2>
-              <span className="stats-panel__hint">
-                {heatmap.total} réalisations · fuseau {heatmap.timezone}
-              </span>
+              <span className="stats-panel__hint">{total} activités sur 12 semaines</span>
             </div>
 
             <div className="heatmap">
               <div className="heatmap__labels">
-                {DAY_LABELS.map((label, index) => (
+                {['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'].map((label, index) => (
                   <span className="heatmap__label" key={label}>
                     {index % 2 === 1 ? label : ''}
                   </span>
@@ -95,17 +91,15 @@ export default function StatsPage({ token }) {
               </div>
 
               <div className="heatmap__grid">
-                {heatmap.weeks.map((week) =>
-                  week.days.map((day, index) =>
-                    day ? (
-                      <span
-                        className={`heatmap__cell heatmap__cell--${day.level}`}
-                        key={day.date}
-                        title={`${day.date} : ${day.count}`}
-                      />
-                    ) : (
-                      <span className="heatmap__cell heatmap__cell--empty" key={`${week.weekStart}-${index}`} />
-                    ),
+                {weeks.flat().map((day, index) =>
+                  day ? (
+                    <span
+                      className={`heatmap__cell heatmap__cell--${day.level}`}
+                      key={day.date}
+                      title={`${day.date} : ${day.count}`}
+                    />
+                  ) : (
+                    <span className="heatmap__cell heatmap__cell--empty" key={`empty-${index}`} />
                   ),
                 )}
               </div>
@@ -113,12 +107,8 @@ export default function StatsPage({ token }) {
 
             <div className="heatmap__legend">
               <span>Moins</span>
-              {heatmap.legend.map((item) => (
-                <span
-                  className={`heatmap__cell heatmap__cell--${item.level}`}
-                  key={item.level}
-                  title={item.label}
-                />
+              {LEGEND.map((label, level) => (
+                <span className={`heatmap__cell heatmap__cell--${level}`} key={label} title={label} />
               ))}
               <span>Plus</span>
             </div>

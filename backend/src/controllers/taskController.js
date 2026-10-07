@@ -24,7 +24,7 @@ function handleTaskError(res, error, message) {
   return sendError(res, 500, 'INTERNAL_ERROR', message)
 }
 
-// Public shape: `id`, never `_id`, and never expose `user`/`__v`.
+
 function publicTask(task) {
   return {
     id: task._id,
@@ -34,13 +34,14 @@ function publicTask(task) {
     dueDate: task.dueDate,
     priority: task.priority,
     completedAt: task.completedAt,
+    createdAt: task.createdAt,
   }
 }
 
 // GET toutes les tasks
 export async function listTasks(req, res) {
   try {
-    const filter = buildTaskFilter(req.user._id, req.validatedQuery) // bonus1 : filtrage ---
+    const filter = buildTaskFilter(req.user._id, req.validatedQuery) 
     const tasks = await Task.find(filter).sort({ createdAt: -1, _id: -1 }) 
     return res.json({ items: tasks.map(publicTask) })
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la récupération des tâches')}
@@ -85,7 +86,7 @@ export async function getTask(req, res) {
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la récupération de la tâche')}
 }
 
-// update (ça peut être un patch ou put mais ici on va faire patch , ligne 13 : taskRoutes.js)
+// update 
 export async function updateTask(req, res) {
   if (!validTaskId(req.params.id)) {return sendError(res, 400, 'INVALID_INPUT', 'Identifiant de tâche invalide')}
 
@@ -104,7 +105,7 @@ export async function updateTask(req, res) {
   } catch (error) {return handleTaskError(res, error, 'Erreur lors de la modification de la tâche')}
 }
 
-// DELETE :T
+// DELETE 
 export async function deleteTask(req, res) {
   if (!validTaskId(req.params.id)) return sendError(res, 400, 'INVALID_INPUT', 'Identifiant de tâche invalide')
 

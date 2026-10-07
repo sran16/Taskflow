@@ -11,9 +11,8 @@ import {
   getHabit,
   updateHabit,
   deleteHabit,
-  listHabitEvents,
-  createHabitEvent,
-  deleteHabitEvent,
+  addHabitDate,
+  removeHabitDate,
 } from '../controllers/habitController.js'
 import {
   createHabitSchema,
@@ -27,16 +26,14 @@ const router = Router()
 
 router.use(requireAuth)
 
-// Required CRUD (contract 4.4)
 router.get('/', listHabits)
 router.post('/', validate(createHabitSchema), createHabit)
 router.get('/:id', getHabit)
 router.patch('/:id', validate(updateHabitSchema), updateHabit)
 router.delete('/:id', deleteHabit)
 
-// Bonus B2: dated realizations
-router.get('/:id/events', listHabitEvents)
-router.post('/:id/events', validate(createHabitEventSchema), createHabitEvent)
-router.delete('/:id/events/:date', deleteHabitEvent)
+// Realizations (dates are stored inside the habit)
+router.post('/:id/events', validate(createHabitEventSchema), addHabitDate)
+router.delete('/:id/events/:date', removeHabitDate)
 
 export default router
