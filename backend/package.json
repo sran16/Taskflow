@@ -12,6 +12,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "node --test",
+    "test:jest": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand test/taskController.test.js",
     "smoke": "node scripts/smoke-test.mjs"
   },
   "dependencies": {
@@ -23,5 +24,8 @@
     "mongoose": "^8.9.0",
     "morgan": "^1.10.0",
     "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2"
   }
 }
