@@ -7,7 +7,14 @@ export default function LoginForm({ onAuthenticated }) {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
 
-  const handleLogin = async () => {
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+
+    if (!email.trim() || !password) {
+      setMessage('Merci de remplir tous les champs.')
+      return
+    }
+
     try {
       const token = await login(email, password)
       localStorage.setItem('taskflow-token', token)
@@ -18,26 +25,28 @@ export default function LoginForm({ onAuthenticated }) {
   }
 
   return (
-    <div className="login-form">
+    <form className="login-form" onSubmit={handleSubmit}>
       <h2 className="login-form__title">Connexion</h2>
       <input
+        autoComplete="email"
         className="login-form__input"
         type="email"
         placeholder="Email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(event) => setEmail(event.target.value)}
       />
       <input
+        autoComplete="current-password"
         className="login-form__input"
         type="password"
         placeholder="Mot de passe"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(event) => setPassword(event.target.value)}
       />
-      <button className="login-form__submit" onClick={handleLogin}>
+      <button className="login-form__submit" type="submit">
         Se connecter
       </button>
       {message && <p className="login-form__message">{message}</p>}
-    </div>
+    </form>
   )
 }

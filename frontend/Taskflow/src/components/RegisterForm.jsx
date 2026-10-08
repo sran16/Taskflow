@@ -7,7 +7,14 @@ export default function RegisterForm({ onAuthenticated }) {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
 
-  const handleRegister = async () => {
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+
+    if (!email.trim() || !password) {
+      setMessage('Merci de remplir tous les champs.')
+      return
+    }
+
     try {
       const token = await register(email, password)
       localStorage.setItem('taskflow-token', token)
@@ -18,26 +25,28 @@ export default function RegisterForm({ onAuthenticated }) {
   }
 
   return (
-    <div className="register-form">
+    <form className="register-form" onSubmit={handleSubmit}>
       <h2 className="register-form__title">Inscription</h2>
       <input
+        autoComplete="email"
         className="register-form__input"
         type="email"
         placeholder="Email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(event) => setEmail(event.target.value)}
       />
       <input
+        autoComplete="new-password"
         className="register-form__input"
         type="password"
-        placeholder="Mot de passe"
+        placeholder="Mot de passe (8 caractères minimum)"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(event) => setPassword(event.target.value)}
       />
-      <button className="register-form__submit" onClick={handleRegister}>
+      <button className="register-form__submit" type="submit">
         S'inscrire
       </button>
       {message && <p className="register-form__message">{message}</p>}
-    </div>
+    </form>
   )
 }
