@@ -56,6 +56,12 @@ export default function HabitsPage({ token }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (!form.title.trim()) {
+      setError('Le titre est obligatoire')
+      return
+    }
+
     setError('')
     setIsSaving(true)
 
@@ -137,7 +143,6 @@ export default function HabitsPage({ token }) {
                 name="title"
                 onChange={handleChange}
                 placeholder="Ex. Marcher 30 min"
-                required
                 value={form.title}
               />
             </label>

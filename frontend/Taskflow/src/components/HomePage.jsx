@@ -59,6 +59,12 @@ export default function HomePage({ token }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (!form.title.trim()) {
+      setError('Le titre est obligatoire')
+      return
+    }
+
     setError('')
     setIsSaving(true)
 
@@ -154,7 +160,6 @@ export default function HomePage({ token }) {
                 name="title"
                 onChange={handleChange}
                 placeholder="Ex. Préparer la présentation"
-                required
                 value={form.title}
               />
             </label>
