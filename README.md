@@ -60,3 +60,7 @@ npm run test:jest
 ```
 
 Les tests couvrent la création, la modification et la suppression des tâches, y compris quelques cas d'erreur. Ils n'ont pas besoin d'une instance MongoDB.
+
+## Swagger 
+
+Lien : http://localhost:4000/api-docs/#/
