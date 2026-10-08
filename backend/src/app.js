@@ -11,7 +11,9 @@ const swaggerFile = JSON.parse(readFileSync(new URL('./swagger-output.json', imp
 
 const app = express()
 
-app.use(cors({ origin: env.corsOrigin }))
+app.use(cors({ 
+origin: env.nodeEnv === 'production' ? env.frontendUrl : '*'
+ }))
 app.use(express.json())
 if (env.nodeEnv !== 'test') app.use(morgan('dev'))
 
